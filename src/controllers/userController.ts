@@ -25,6 +25,34 @@ class UserController {
         }
     }
 
+    async login(req: Request, res: Response): Promise<void> {
+        try {
+            const { email, password } = req.body;
+            const { user, token } = await UserService.login(email, password);
+            res.json({ user, token });
+        } catch (error) {
+            if (error instanceof Error) {
+                res.status(401).json({ error: error.message });
+            } else {
+                res.status(500).json({ error: 'An unknown error occurred' });
+            }
+        }
+    }
+
+    async getProfile(req: Request, res: Response): Promise<void> {
+        try {
+            const userId = (req as any).userId;
+            const profile = await UserService.getProfile(userId);
+            res.json(profile);
+        } catch (error) {
+            if (error instanceof Error) {
+                res.status(500).json({ error: error.message });
+            } else {
+                res.status(500).json({ error: 'An unknown error occurred' });
+            }
+        }
+    }
+
     async getRecommendations(req: Request, res: Response): Promise<void> {
         try {
             const userId = req.params.id;

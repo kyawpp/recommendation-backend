@@ -12,7 +12,7 @@ class UserRepository {
     }
 
     async findByEmail(email: string): Promise<User | null>{
-        return User.findOne({ where: { email } });
+        return User.scope('withPassword').findOne({ where: { email } });
     }
 
     async findRecommendations(userId: string, gender: string, university: string, interests: string[]): Promise<User[]> {
