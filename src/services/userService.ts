@@ -25,6 +25,7 @@ class UserService {
         }
         const token = jwt.sign({ userId: user.id }, config.jwtSecret, { expiresIn: '1h' });
         const { password: userPassword, ...userWithoutPassword } = user.toJSON();
+        console.log('User from database:', user);
         return { user: userWithoutPassword, token };
     }
 

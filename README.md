@@ -15,6 +15,7 @@ docker run --name my_postgres_container \
   "gender": "{{gender}}",
   "location": "{{location}}",
   "university": "{{university}}",
-  "interests": ["{{interest1}}", "{{interest2}}"],
+  "interests": {{interestsArray}},
+  "email": "{{email}}",
   "password": "password123"
 }

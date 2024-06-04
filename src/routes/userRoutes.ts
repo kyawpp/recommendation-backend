@@ -7,6 +7,6 @@ const router = Router();
 
 router.post('/signup', UserController.signUp);
 router.post('/login', UserController.login)
-router.post('/profile', authenticateJWT, userController.getProfile)
+router.get('/profile', authenticateJWT, userController.getProfile)
 
 export default router;

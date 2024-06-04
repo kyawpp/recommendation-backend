@@ -1,14 +1,29 @@
 import UserService from '../services/userService';
 import UserRepository from '../repositories/userRepository';
-import { UserAttributes, UserCreationAttributes } from '../models/user';
-import * as bcrypt from 'bcryptjs';
+import {User, UserAttributes, UserCreationAttributes } from '../models/user';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 
 jest.mock('../repositories/userRepository');
 jest.mock('bcryptjs');
 jest.mock('uuid');
+jest.mock('jsonwebtoken', () => ({
+    sign: jest.fn()
+}));
 
 describe('UserService', () => {
+    const mockUser: UserCreationAttributes & { id: string } = {
+        id: '1',
+        name: 'John Doe',
+        gender: 'male',
+        location: 'New York',
+        university: 'NYU',
+        interests: ['coding', 'music'],
+        email: 'johndoe@example.com',
+        password: 'password123'
+    };
+
     describe('signUp', () => {
         it('should create a new user', async () => {
             const mockUser: UserCreationAttributes = {
@@ -17,7 +32,7 @@ describe('UserService', () => {
                 location: 'New York',
                 university: 'NYU',
                 interests: ['coding', 'music'],
-                email: 'john.doe@example.com',
+                email: 'john1.doe@example.com',
                 password: 'password123'
             };
 
@@ -34,6 +49,44 @@ describe('UserService', () => {
             const createdUser = await UserService.signUp(mockUser);
             expect(createdUser.id).toBe(mockUserWithId.id);
             expect(createdUser.email).toBe(mockUser.email);
+        });
+    });
+
+    describe('login', () => {
+        it('should return a token and user without password on successful login', async () => {
+            (UserRepository.findByEmail as jest.Mock).mockResolvedValue(mockUser);
+            (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+            (jwt.sign as jest.Mock).mockReturnValue('mockToken');
+
+            const result = await UserService.login('johndoe@example.com', 'password123');
+
+            expect(result.token).toBe('mockToken');
+            expect(result.user).toEqual({
+                id: '1',
+                name: 'John Doe',
+                gender: 'male',
+                location: 'New York',
+                university: 'NYU',
+                interests: ['coding', 'music'],
+                email: 'johndoe@example.com'
+            });
+        });
+
+        it('should throw an error if email is not found', async () => {
+            (UserRepository.findByEmail as jest.Mock).mockResolvedValue(null);
+
+            await expect(UserService.login('johndoe@example.com', 'password123'))
+                .rejects
+                .toThrow('Invalid email or password');
+        });
+
+        it('should throw an error if password does not match', async () => {
+            (UserRepository.findByEmail as jest.Mock).mockResolvedValue(mockUser);
+            (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+
+            await expect(UserService.login('johndoe@example.com', 'password123'))
+                .rejects
+                .toThrow('Invalid email or password');
         });
     });
 
